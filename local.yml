@@ -45,7 +45,7 @@ services:
       - web
     # env_file:
     #   - ./.env
-    command: python manage.py simulate_market --interval 30
+    command: python manage.py simulate_market --interval 300
 
   dozzle:
     image: amir20/dozzle:latest
