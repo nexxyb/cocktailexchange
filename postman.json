@@ -1,0 +1,486 @@
+{
+    "info": {
+      "_postman_id": "b8f10a1d-2c5b-4e6e-8f81-f3d7d8a5a8e9",
+      "name": "Cocktail Exchange API",
+      "description": "API endpoints for the Cocktail Exchange platform where users can trade virtual cocktails like stocks.",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+      {
+        "name": "Authentication",
+        "description": "Endpoints for user authentication and registration",
+        "item": [
+          {
+            "name": "Register New User",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"username\": \"testuser\",\n    \"password\": \"StrongPass123!\",\n    \"email\": \"testuser@example.com\",\n    \"first_name\": \"Test\",\n    \"last_name\": \"User\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/auth/users/",
+                "host": ["{{base_url}}"],
+                "path": ["auth", "users", ""]
+              },
+              "description": "Register a new user account"
+            },
+            "response": []
+          },
+          {
+            "name": "Get JWT Token",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "var jsonData = pm.response.json();",
+                    "pm.environment.set(\"access_token\", jsonData.access);",
+                    "pm.environment.set(\"refresh_token\", jsonData.refresh);"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ],
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"username\": \"testuser\",\n    \"password\": \"StrongPass123!\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/auth/jwt/create/",
+                "host": ["{{base_url}}"],
+                "path": ["auth", "jwt", "create", ""]
+              },
+              "description": "Get JWT access token for authentication"
+            },
+            "response": []
+          },
+          {
+            "name": "Refresh JWT Token",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "var jsonData = pm.response.json();",
+                    "pm.environment.set(\"access_token\", jsonData.access);"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ],
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"refresh\": \"{{refresh_token}}\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/auth/jwt/refresh/",
+                "host": ["{{base_url}}"],
+                "path": ["auth", "jwt", "refresh", ""]
+              },
+              "description": "Refresh JWT access token using refresh token"
+            },
+            "response": []
+          },
+          {
+            "name": "Get Current User",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "JWT {{access_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/user/",
+                "host": ["{{base_url}}"],
+                "path": ["user", ""]
+              },
+              "description": "Get information about the currently logged in user"
+            },
+            "response": []
+          }
+        ]
+      },
+      {
+        "name": "Cocktails",
+        "description": "Endpoints for cocktail information and prices",
+        "item": [
+          {
+            "name": "List All Cocktails",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "JWT {{access_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/cocktails/",
+                "host": ["{{base_url}}"],
+                "path": ["cocktails", ""]
+              },
+              "description": "Get list of all available cocktails"
+            },
+            "response": []
+          },
+          {
+            "name": "Get Cocktail Details",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "JWT {{access_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/cocktails/1/",
+                "host": ["{{base_url}}"],
+                "path": ["cocktails", "1", ""]
+              },
+              "description": "Get detailed information about a specific cocktail"
+            },
+            "response": []
+          },
+          {
+            "name": "Get Cocktail Price History",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "JWT {{access_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/cocktails/1/price_history/?days=7",
+                "host": ["{{base_url}}"],
+                "path": ["cocktails", "1", "price_history", ""],
+                "query": [
+                  {
+                    "key": "days",
+                    "value": "7"
+                  }
+                ]
+              },
+              "description": "Get price history for a specific cocktail over a period of days"
+            },
+            "response": []
+          }
+        ]
+      },
+      {
+        "name": "Portfolio",
+        "description": "Endpoints for user portfolio management",
+        "item": [
+          {
+            "name": "Get User Portfolio",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "JWT {{access_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/portfolio/",
+                "host": ["{{base_url}}"],
+                "path": ["portfolio", ""]
+              },
+              "description": "Get current user's portfolio information including cash balance and positions"
+            },
+            "response": []
+          }
+        ]
+      },
+      {
+        "name": "Positions",
+        "description": "Endpoints for managing trading positions",
+        "item": [
+          {
+            "name": "List User Positions",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "JWT {{access_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/positions/",
+                "host": ["{{base_url}}"],
+                "path": ["positions", ""]
+              },
+              "description": "Get all positions for the current user"
+            },
+            "response": []
+          },
+          {
+            "name": "Open New Position (Long)",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "JWT {{access_token}}"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"cocktail\": 1,\n    \"position_type\": \"LONG\",\n    \"quantity\": 5\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/positions/open_position/",
+                "host": ["{{base_url}}"],
+                "path": ["positions", "open_position", ""]
+              },
+              "description": "Open a new LONG position (buying cocktail shares)"
+            },
+            "response": []
+          },
+          {
+            "name": "Open New Position (Short)",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "JWT {{access_token}}"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"cocktail\": 2,\n    \"position_type\": \"SHORT\",\n    \"quantity\": 3\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/positions/open_position/",
+                "host": ["{{base_url}}"],
+                "path": ["positions", "open_position", ""]
+              },
+              "description": "Open a new SHORT position (selling cocktail shares)"
+            },
+            "response": []
+          },
+          {
+            "name": "Close Position (Full)",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "JWT {{access_token}}"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"quantity\": 5\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/positions/1/close_position/",
+                "host": ["{{base_url}}"],
+                "path": ["positions", "1", "close_position", ""]
+              },
+              "description": "Close a position completely"
+            },
+            "response": []
+          },
+          {
+            "name": "Close Position (Partial)",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "JWT {{access_token}}"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"quantity\": 2\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/positions/2/close_position/",
+                "host": ["{{base_url}}"],
+                "path": ["positions", "2", "close_position", ""]
+              },
+              "description": "Close part of a position"
+            },
+            "response": []
+          },
+          {
+            "name": "Get Single Position",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "JWT {{access_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/positions/1/",
+                "host": ["{{base_url}}"],
+                "path": ["positions", "1", ""]
+              },
+              "description": "Get details for a specific position"
+            },
+            "response": []
+          }
+        ]
+      },
+      {
+        "name": "Transactions",
+        "description": "Endpoints for transaction history",
+        "item": [
+          {
+            "name": "List User Transactions",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "JWT {{access_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/transactions/",
+                "host": ["{{base_url}}"],
+                "path": ["transactions", ""]
+              },
+              "description": "Get transaction history for the current user"
+            },
+            "response": []
+          },
+          {
+            "name": "Get Transaction Details",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "JWT {{access_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/transactions/1/",
+                "host": ["{{base_url}}"],
+                "path": ["transactions", "1", ""]
+              },
+              "description": "Get details for a specific transaction"
+            },
+            "response": []
+          }
+        ]
+      },
+      {
+        "name": "Market",
+        "description": "Endpoints for market information",
+        "item": [
+          {
+            "name": "Get Active Market Events",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "JWT {{access_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/market-events/",
+                "host": ["{{base_url}}"],
+                "path": ["market-events", ""]
+              },
+              "description": "Get information about currently active market events"
+            },
+            "response": []
+          },
+          {
+            "name": "Get Leaderboard",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "JWT {{access_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/leaderboard/",
+                "host": ["{{base_url}}"],
+                "path": ["leaderboard", ""]
+              },
+              "description": "Get user rankings based on portfolio value"
+            },
+            "response": []
+          }
+        ]
+      }
+    ],
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "type": "text/javascript",
+          "exec": [""]
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [""]
+        }
+      }
+    ],
+    "variable": [
+      {
+        "key": "base_url",
+        "value": "http://localhost:8000/api",
+        "type": "string"
+      }
+    ]
+  }
