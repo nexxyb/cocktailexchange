@@ -25,7 +25,7 @@ RUN pip install gunicorn psycopg2-binary
 COPY . /app/
 
 # Collect static files
-RUN python manage.py collectstatic --noinput
+# RUN python manage.py collectstatic --noinput
 
 # Run gunicorn
 CMD gunicorn cocktail_exchange.wsgi:application --bind 0.0.0.0:8000
