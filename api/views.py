@@ -1,35 +1,70 @@
-from rest_framework import viewsets, permissions, status, generics
+from datetime import timedelta
+from decimal import Decimal
+
+from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from djoser.views import TokenCreateView as BaseTokenCreateView
+from djoser.views import UserViewSet
+from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.db.models import F, Sum, Count
-from django.utils import timezone
-from django.shortcuts import get_object_or_404
-from decimal import Decimal
-from datetime import timedelta
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView  # Import this
 
-from django.contrib.auth.models import User
 from .models import (
     Cocktail,
-    PriceHistory,
-    UserPortfolio,
-    Position,
-    Transaction,
     MarketEvent,
+    Position,
+    PriceHistory,
+    Transaction,
+    UserPortfolio,
 )
 from .serializers import (
-    UserSerializer,
-    CocktailSerializer,
     CocktailListSerializer,
-    PriceHistorySerializer,
-    PortfolioSerializer,
-    PositionSerializer,
-    TransactionSerializer,
-    MarketEventSerializer,
-    PositionCreateSerializer,
-    PositionCloseSerializer,
+    CocktailSerializer,
+    CustomTokenObtainPairSerializer,
+    CustomUserCreateSerializer,
     LeaderboardEntrySerializer,
+    MarketEventSerializer,
+    PortfolioSerializer,
+    PositionCloseSerializer,
+    PositionCreateSerializer,
+    PositionSerializer,
+    PriceHistorySerializer,
+    TransactionSerializer,
+    UserSerializer,
 )
+
+
+class CustomUserViewSet(UserViewSet):
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+
+        # Generate tokens
+        refresh = RefreshToken.for_user(user)
+        tokens = {
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+        }
+
+        headers = self.get_success_headers(serializer.data)
+        response_data = serializer.data
+        response_data["tokens"] = tokens
+
+        return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return CustomUserCreateSerializer
+        return super().get_serializer_class()
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
 
 
 class CocktailViewSet(viewsets.ModelViewSet):

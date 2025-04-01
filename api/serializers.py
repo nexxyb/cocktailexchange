@@ -1,13 +1,46 @@
-from rest_framework import serializers
 from django.contrib.auth.models import User
+
+# In serializers.py
+from djoser.serializers import UserCreateSerializer
+from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+
 from .models import (
     Cocktail,
-    PriceHistory,
-    UserPortfolio,
-    Position,
-    Transaction,
     MarketEvent,
+    Position,
+    PriceHistory,
+    Transaction,
+    UserPortfolio,
 )
+
+
+class CustomUserCreateSerializer(UserCreateSerializer):
+    class Meta(UserCreateSerializer.Meta):
+        fields = ("id", "username", "email", "password", "first_name", "last_name")
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        refresh = RefreshToken.for_user(instance)
+        representation["tokens"] = {
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+        }
+        return representation
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        # The default result (access/refresh tokens)
+        data = super().validate(attrs)
+
+        # Add user data to the response
+        # self.user is set by the parent serializer after successful authentication
+        user_data = UserSerializer(self.user).data
+        data["user"] = user_data
+
+        return data
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -74,7 +107,26 @@ class PositionSerializer(serializers.ModelSerializer):
         read_only_fields = ("portfolio", "opened_at", "closed_at", "is_open")
 
 
+# class TransactionSerializer(serializers.ModelSerializer):
+#     cocktail_name = serializers.ReadOnlyField(source="cocktail.name")
+
+#     class Meta:
+#         model = Transaction
+#         fields = (
+#             "id",
+#             "cocktail",
+#             "cocktail_name",
+#             "transaction_type",
+#             "quantity",
+#             "price",
+#             "timestamp",
+#             "realized_pnl",
+#         )
+#         read_only_fields = ("user", "portfolio", "position", "timestamp")
+
+
 class TransactionSerializer(serializers.ModelSerializer):
+    trade_type = serializers.SerializerMethodField()
     cocktail_name = serializers.ReadOnlyField(source="cocktail.name")
 
     class Meta:
@@ -84,12 +136,18 @@ class TransactionSerializer(serializers.ModelSerializer):
             "cocktail",
             "cocktail_name",
             "transaction_type",
+            "trade_type",
             "quantity",
             "price",
             "timestamp",
             "realized_pnl",
         )
-        read_only_fields = ("user", "portfolio", "position", "timestamp")
+
+    def get_trade_type(self, obj):
+        if obj.transaction_type == "OPEN":
+            return "BUY" if obj.position.position_type == "LONG" else "SELL"
+        else:  # transaction_type == "CLOSE"
+            return "SELL" if obj.position.position_type == "LONG" else "BUY"
 
 
 class PortfolioSerializer(serializers.ModelSerializer):
